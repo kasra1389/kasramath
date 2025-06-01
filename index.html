@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<!-- 
+    سند اصلی HTML برای اپلیکیشن "کسری ریاضی"
+    زبان: فارسی (fa)
+    جهت: راست به چپ (rtl)
+-->
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+     <title>کسری ریاضی - نسخه هوشمند</title> 
+     <script src="https://cdn.tailwindcss.com"></script> 
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
+     <script src="https://unpkg.com/algebra.js@0.2.6/dist/algebra.min.js"></script>
+     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script> 
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
+     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&family=Orbitron:wght@400;700&family=VT323&family=Monoton&family=Inter:wght@100..900&family=Lalezar&display=swap" rel="stylesheet"> 
+     <link rel="stylesheet" href="style.css">
+
+</head>
+<body class="theme-classic">
+
+    <div id="toast-container" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[2000] hidden opacity-0 transition-opacity duration-500" role="status" aria-live="polite">
+      <div id="toast-message" class="bg-accent-bg text-accent-text px-6 py-3 rounded-xl shadow-xl text-lg font-semibold"></div>
+    </div>
+
+    <div id="initial-loader-overlay" class="fixed inset-0 bg-primary z-[9999] flex flex-col items-center justify-center transition-opacity duration-500 ease-out opacity-100">
+        <i data-lucide="atom" class="w-16 h-16 text-accent-bg animate-spin" style="animation-duration: 2s;"></i> <div class="loader-dots-container"> <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+        </div>
+        <p id="loader-text" class="mt-3 text-lg font-semibold text-secondary"></p> </div>
+
+    <div id="welcome-overlay" class="fixed inset-0 z-[1200]"> <h2 id="welcome-overlay-title">به دنیای کسری ریاضی قدم بگذارید!</h2> <p id="welcome-overlay-text">جایی که پیچیدگی‌ها ساده می‌شوند و یادگیری ریاضیات به یک ماجراجویی هیجان‌انگیز تبدیل می‌شود. آماده‌اید؟</p> <button id="proceed-to-form-button" class="welcome-button">شروع کنیم!</button> </div>
+
+    <div id="user-info-form-modal-overlay" class="modal-overlay fixed inset-0 z-[1250]">
+        <div id="user-info-form-modal-content" class="modal-content p-7 rounded-2xl w-full max-w-md">
+            <div class="flex justify-between items-center mb-5">
+                <h2 id="user-info-form-title" class="text-2xl font-semibold flex items-center"><i data-lucide="user-check" class="ltr:mr-2 rtl:ml-2"></i>اطلاعات شما</h2>
+                <button onclick="closeUserInfoFormModal(true)" class="p-1.5 rounded-full hover:opacity-70" aria-label="بستن فرم"><i data-lucide="x-circle" class="w-7 h-7"></i></button>
+            </div>
+            <form id="user-info-form" class="space-y-4">
+                <div>
+                    <label for="user-name-input" class="block text-sm font-medium mb-1.5" id="user-form-name-label">نام (اختیاری):</label>
+                    <input type="text" id="user-name-input" name="userName" class="w-full" placeholder="مثال: کسری">
+                </div>
+                <div>
+                    <label for="user-interest-select" class="block text-sm font-medium mb-1.5" id="user-form-interest-label">حوزه علاقه (اختیاری):</label>
+                    <select id="user-interest-select" name="userInterest" class="w-full">
+                        <option value="">انتخاب کنید...</option>
+                        <option value="student_highschool">دانش‌آموز دبیرستان</option>
+                        <option value="student_uni">دانشجو</option>
+                        <option value="teacher">معلم / استاد</option>
+                        <option value="enthusiast">علاقه‌مند به ریاضیات</option>
+                        <option value="other">سایر</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3 pt-3">
+                    <button type="button" onclick="skipUserInfoForm()" class="secondary py-2.5 px-5 rounded-lg" id="skip-user-form-button">رد شدن</button>
+                    <button type="submit" class="primary py-2.5 px-5 rounded-lg flex items-center" id="submit-user-form-button"><i data-lucide="send" class="ltr:mr-2 rtl:ml-2"></i>ثبت اطلاعات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <header id="main-header" class="sticky top-0 z-50 p-4">
+        <div class="container mx-auto flex flex-wrap items-center justify-between">
+            <div class="flex items-center">
+                <div id="site-logo-placeholder">K</div> <h1 id="site-title" class="text-3xl font-bold cursor-pointer hover:opacity-80 flex items-center" onclick="navigateTo('home')">
+                    کسری ریاضی
+                </h1>
+            </div>
+            <div class="flex items-center space-x-1 rtl:space-x-reverse md:space-x-2">
+                <nav class="hidden xl:flex space-x-0.5 rtl:space-x-reverse">
+                    <button id="nav-home" onclick="navigateTo('home')" class="nav-button" aria-label="صفحه اصلی">🏠 صفحه اصلی</button>
+                    <button id="nav-simplify" onclick="navigateTo('simplify')" class="nav-button" aria-label="ساده‌سازی">📉 ساده‌سازی</button>
+                    <button id="nav-solve" onclick="navigateTo('solve')" class="nav-button" aria-label="حل معادله">🧮 حل معادله</button>
+                    <button id="nav-notes" onclick="navigateTo('notes')" class="nav-button" aria-label="یادداشت">🗒️ یادداشت</button>
+                    <button id="nav-whiteboard" onclick="navigateTo('whiteboard')" class="nav-button" aria-label="تخته سفید">🎨 تخته سفید</button>
+                    <button id="nav-search" onclick="navigateTo('search')" class="nav-button" aria-label="جستجو">🔍 جستجو</button> 
+                    <div class="relative group more-dropdown-button"> <button class="nav-button flex items-center" aria-haspopup="true" aria-expanded="false">
+                            ✨ بیشتر <i data-lucide="chevron-down" class="w-4 h-4 ltr:ml-1 rtl:mr-1 transition-transform duration-200 group-hover:rotate-180"></i>
+                        </button>
+                        <div class="more-dropdown-menu" role="menu"> <a id="nav-info-dropdown" onclick="navigateTo('info')" class="dropdown-menu-item cursor-pointer" role="menuitem"><i data-lucide="user-circle"></i>👤 اطلاعات</a>
+                            <a id="nav-calendar-dropdown" onclick="navigateTo('calendar')" class="dropdown-menu-item cursor-pointer" role="menuitem"><i data-lucide="calendar-days"></i>📅 تقویم</a>
+                            <div class="dropdown-divider"></div> <a id="nav-articles-dropdown" onclick="navigateTo('articles')" class="dropdown-menu-item cursor-pointer" role="menuitem"><i data-lucide="book-open"></i>📚 مقالات</a>
+                            <a id="nav-blog-dropdown" onclick="navigateTo('blog')" class="dropdown-menu-item cursor-pointer" role="menuitem"><i data-lucide="edit-3"></i>📝 وبلاگ</a>
+                            <a id="nav-videos-dropdown" onclick="navigateTo('videos')" class="dropdown-menu-item cursor-pointer" role="menuitem"><i data-lucide="youtube"></i>🎬 ویدیوها</a>
+                            <div class="dropdown-divider"></div>
+                            <a id="nav-tools-dropdown" onclick="navigateTo('tools')" class="dropdown-menu-item cursor-pointer" role="menuitem"><i data-lucide="tool"></i>🛠️ ابزارک‌ها</a>
+                            <a id="nav-software-dropdown" onclick="navigateTo('software')" class="dropdown-menu-item cursor-pointer" role="menuitem"><i data-lucide="laptop"></i>💻 نرم‌افزارها</a>
+                            <a id="nav-products-dropdown" onclick="navigateTo('products')" class="dropdown-menu-item cursor-pointer" role="menuitem"><i data-lucide="shopping-cart"></i>🛍️ محصولات</a>
+                            <a id="nav-ads-dropdown" onclick="navigateTo('ads')" class="dropdown-menu-item cursor-pointer" role="menuitem"><i data-lucide="megaphone"></i>📢 تبلیغات</a>
+                            <div class="dropdown-divider"></div>
+                            <a id="nav-contact-dropdown" onclick="navigateTo('contact')" class="dropdown-menu-item cursor-pointer" role="menuitem"><i data-lucide="mail"></i>📞 تماس با ما</a>
+                            <a id="nav-about-dropdown" onclick="navigateTo('about')" class="dropdown-menu-item cursor-pointer" role="menuitem"><i data-lucide="info"></i>ℹ️ درباره ما</a>
+                        </div>
+                    </div>
+                </nav>
+                <div class="relative">
+                    <button id="settings-button" onclick="toggleSettings()" class="p-2.5 rounded-full primary" title="تنظیمات" aria-label="باز کردن تنظیمات">
+                        <i data-lucide="settings-2" class="w-5 h-5"></i>
+                    </button>
+                    <div id="settings-menu" class="hidden absolute ltr:right-0 rtl:left-0 mt-2 w-72 md:w-80 card rounded-xl shadow-2xl p-5 z-[100] border-color opacity-0 transition-opacity duration-300">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 id="settings-title" class="text-xl font-semibold">⚙️ تنظیمات</h3>
+                            <button onclick="toggleSettings()" class="p-1.5 rounded-full hover:opacity-70" aria-label="بستن تنظیمات"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        </div>
+                        <div class="mb-4">
+                            <label id="theme-label" for="theme-select" class="block text-sm font-medium mb-1.5">🎨 تم</label>
+                            <select id="theme-select" class="w-full rounded-lg text-sm">
+                                <option value="classic">کلاسیک</option> <option value="space">فضایی 🌌</option> <option value="modern">مدرن 💡</option>
+                                <option value="neon">نئونی 🌟</option> <option value="hacker">هکری 👾</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label id="font-farsi-label" for="font-farsi-select" class="block text-sm font-medium mb-1.5">🇮🇷 فونت فارسی</label>
+                            <select id="font-farsi-select" class="w-full rounded-lg text-sm">
+                                <option value="'Vazirmatn', Arial, sans-serif">وزیرمتن</option> <option value="'Lalezar', Arial, sans-serif">لاله‌زار</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label id="font-english-label" for="font-english-select" class="block text-sm font-medium mb-1.5">🇬🇧 فونت انگلیسی</label>
+                            <select id="font-english-select" class="w-full rounded-lg text-sm">
+                                <option value="'Inter', 'Vazirmatn', sans-serif">Inter</option> <option value="'Orbitron', 'Vazirmatn', sans-serif">Orbitron</option>
+                                <option value="'VT323', 'Vazirmatn', monospace">VT323</option> <option value="'Monoton', 'Vazirmatn', cursive">Monoton</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label id="language-label" class="block text-sm font-medium mb-1.5">🌍 زبان</label>
+                            <button id="language-toggle-button" onclick="toggleLanguage()" class="primary w-full py-2.5 px-3 rounded-lg text-sm">تغییر به انگلیسی</button>
+                        </div>
+                        <p id="user-id-display" class="text-xs mt-4 opacity-70"></p> </div>
+                </div>
+                <button id="help-button" onclick="openHelpModal()" class="p-2.5 rounded-full primary" title="راهنما" aria-label="باز کردن راهنما">
+                    <i data-lucide="help-circle" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+        <div class="xl:hidden mt-3">
+            <select id="mobile-nav-select" onchange="navigateTo(this.value)" class="w-full rounded-lg text-sm p-2.5" aria-label="منوی ناوبری موبایل">
+                <option value="home">🏠 صفحه اصلی</option> <option value="simplify">📉 ساده‌سازی</option> <option value="solve">🧮 حل معادله</option>
+                <option value="notes">🗒️ یادداشت</option> <option value="whiteboard">🎨 تخته سفید</option> <option value="search">🔍 جستجو</option>
+                <option value="info">👤 اطلاعات</option> <option value="calendar">📅 تقویم</option> <option value="articles">📚 مقالات</option> 
+                <option value="blog">📝 وبلاگ</option> <option value="videos">🎬 ویدیوها (آپارات)</option> <option value="tools">🛠️ ابزارک‌ها</option> 
+                <option value="software">💻 نرم‌افزارها</option> <option value="products">🛍️ محصولات</option> <option value="ads">📢 تبلیغات</option> 
+                <option value="contact">📞 تماس با ما</option> <option value="about">ℹ️ درباره ما</option>
+            </select>
+        </div>
+    </header>
+
+    <div id="quick-access-menu" aria-label="منوی دسترسی سریع">
+        <button onclick="navigateTo('home')" class="quick-access-button" title="صفحه اصلی" aria-label="رفتن به صفحه اصلی"><i data-lucide="home"></i></button>
+        <button onclick="navigateTo('simplify')" class="quick-access-button" title="ساده‌سازی" aria-label="رفتن به بخش ساده‌سازی"><i data-lucide="function-square"></i></button>
+        <button onclick="navigateTo('solve')" class="quick-access-button" title="حل معادله" aria-label="رفتن به بخش حل معادله"><i data-lucide="calculator"></i></button>
+        <button onclick="navigateTo('notes')" class="quick-access-button" title="یادداشت‌ها" aria-label="رفتن به بخش یادداشت‌ها"><i data-lucide="notebook-tabs"></i></button>
+        <button onclick="navigateTo('whiteboard')" class="quick-access-button" title="تخته سفید" aria-label="رفتن به بخش تخته سفید"><i data-lucide="palette"></i></button>
+        <button onclick="openHelpModal()" class="quick-access-button" title="راهنما" aria-label="باز کردن راهنما"><i data-lucide="help-circle"></i></button>
+    </div>
+
+    <main class="container mx-auto p-4 sm:p-5 md:p-8">
+        <section id="home-section" class="section-content active">
+            <div class="card p-8 md:p-12 rounded-2xl text-center">
+                <h2 id="welcome-title" class="text-4xl md:text-5xl font-bold mb-5">به کسری ریاضی خوش آمدید! 👋</h2>
+                <p id="app-description" class="text-lg md:text-xl mb-8 opacity-90">ابزاری جامع و قدرتمند برای ساده‌سازی عبارات جبری، حل معادلات، یادداشت‌برداری هوشمند، نقاشی روی تخته سفید دیجیتال و کاوش در دنیای ریاضیات. 🚀</p>
+                <div class="grid md:grid-cols-2 gap-5">
+                    <button onclick="navigateTo('simplify')" class="primary text-lg py-3.5 px-6 rounded-xl flex items-center justify-center"><i data-lucide="bar-chart-2" class="ltr:mr-2 rtl:ml-2"></i>شروع ساده‌سازی</button>
+                    <button onclick="navigateTo('solve')" class="secondary text-lg py-3.5 px-6 rounded-xl flex items-center justify-center"><i data-lucide="calculator" class="ltr:mr-2 rtl:ml-2"></i>حل معادلات</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="simplify-section" class="section-content">
+            <div class="card p-6 sm:p-8 rounded-2xl">
+                <h2 id="simplify-title" class="text-3xl font-semibold mb-6 pb-3 border-b border-color flex items-center"><i data-lucide="function-square" class="ltr:mr-3 rtl:ml-3 text-accent-bg"></i>📉 ساده‌سازی عبارات جبری</h2>
+                <textarea id="expression-input" rows="4" placeholder="عبارت جبری را وارد کنید (مثال: 2x^2 + 3x - x^2 + 7 - 2x)" class="w-full rounded-xl text-lg p-3"></textarea>
+                <div class="flex flex-col sm:flex-row gap-3 mt-5">
+                    <button id="simplify-button" onclick="simplifyExpression()" class="primary flex-grow py-3.5 px-5 rounded-xl text-xl font-semibold flex items-center justify-center"><i data-lucide="zap" class="ltr:mr-2 rtl:ml-2"></i>ساده کن</button>
+                    <button id="explain-simplify-button" onclick="explainSimplification()" class="gemini-button gemini-glow flex-grow py-3.5 px-5 rounded-xl text-xl font-semibold flex items-center justify-center hidden"><i data-lucide="sparkles" class="ltr:mr-2 rtl:ml-2"></i>توضیح مراحل ✨</button>
+                </div>
+                <div id="simplify-error" class="mt-4 text-red-500 text-base min-h-[1.5rem]"></div>
+                <div id="simplify-result-container" class="mt-5 p-5 rounded-xl border-color hidden bg-secondary">
+                    <div class="flex justify-between items-center">
+                        <h3 id="result-label" class="font-semibold text-lg flex items-center"><i data-lucide="check-circle" class="ltr:mr-2 rtl:ml-2 text-green-500"></i>نتیجه:</h3>
+                        <button id="copy-simplify-result-button" onclick="copyToClipboard('simplify-result')" class="secondary copy-button" aria-label="کپی نتیجه"><i data-lucide="copy" class="w-4 h-4 ltr:mr-1 rtl:ml-1"></i>کپی</button>
+                    </div>
+                    <p id="simplify-result" class="text-2xl font-mono break-all mt-2 p-3 bg-card rounded-lg"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="solve-section" class="section-content">
+             <div class="card p-6 sm:p-8 rounded-2xl">
+                <h2 id="solve-title" class="text-3xl font-semibold mb-6 pb-3 border-b border-color flex items-center"><i data-lucide="sigma" class="ltr:mr-3 rtl:ml-3 text-accent-bg"></i>🧮 حل معادلات</h2>
+                <textarea id="equation-input" rows="4" placeholder="معادله را وارد کنید (مثال: 2*x + 5 = 13  یا  x^2 - 5*x + 6 = 0  یا  sin(x) = 0.5)" class="w-full rounded-xl text-lg p-3"></textarea>
+                <div class="flex flex-col sm:flex-row gap-3 mt-5">
+                    <button id="solve-button" onclick="solveSingleVariableEquation()" class="primary flex-grow py-3.5 px-5 rounded-xl text-xl font-semibold flex items-center justify-center" aria-label="حل معادله با کتابخانه داخلی"><i data-lucide="search" class="ltr:mr-2 rtl:ml-2"></i>حل کن (به زودی)</button>
+                    <button id="ai-solve-button" onclick="solveWithAI()" class="gemini-button gemini-glow flex-grow py-3.5 px-5 rounded-xl text-xl font-semibold flex items-center justify-center" aria-label="حل معادله با هوش مصنوعی"><i data-lucide="brain-circuit" class="ltr:mr-2 rtl:ml-2"></i>حل با هوش مصنوعی ✨</button>
+                </div>
+                <div id="solve-error" class="mt-4 text-red-500 text-base min-h-[1.5rem]"></div>
+                <div id="solve-result-container" class="mt-5 p-5 rounded-xl border-color hidden bg-secondary">
+                    <h3 id="solution-label" class="font-semibold text-lg flex items-center"><i data-lucide="list-checks" class="ltr:mr-2 rtl:ml-2 text-green-500"></i>جواب(ها):</h3>
+                    <p id="solve-result" class="text-xl font-mono break-all whitespace-pre-wrap mt-2 p-3 bg-card rounded-lg"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="notes-section" class="section-content">
+            <div class="card p-6 sm:p-8 rounded-2xl">
+                <h2 id="notes-title" class="text-3xl font-semibold mb-6 pb-3 border-b border-color flex items-center"><i data-lucide="notebook-tabs" class="ltr:mr-3 rtl:ml-3 text-accent-bg"></i>🗒️ یادداشت‌ها و چک‌لیست‌ها (نمایشی)</h2>
+                <div class="mb-6">
+                    <input type="text" id="note-title-input" placeholder="عنوان یادداشت..." class="w-full mb-3 rounded-xl p-3">
+                    <textarea id="note-content-input" placeholder="محتوای اصلی یادداشت..." rows="3" class="w-full mb-3 rounded-xl p-3"></textarea>
+                    <h4 class="text-md font-medium mb-2" id="checklist-header">☑️ آیتم‌های چک‌لیست:</h4>
+                    <div id="checklist-items-container" class="space-y-2 mb-3"></div>
+                    <button id="add-checklist-item-button" onclick="addChecklistItemToForm()" class="secondary py-2 px-4 rounded-lg text-sm flex items-center mb-4"><i data-lucide="plus-circle" class="ltr:mr-2 rtl:ml-2"></i>افزودن آیتم چک‌لیست</button>
+                    <div class="flex gap-3">
+                        <button id="save-note-button" onclick="saveNoteDisplayOnly()" class="primary mt-1 py-3 px-5 rounded-xl flex items-center justify-center flex-grow text-lg">
+                            <i data-lucide="plus" class="w-5 h-5 ltr:mr-2 rtl:ml-2"></i><span id="save-note-text">افزودن یادداشت (نمایشی)</span>
+                        </button>
+                        <button id="clear-note-form-button" onclick="clearNoteForm()" class="secondary mt-1 py-3 px-5 rounded-xl flex items-center justify-center text-lg" aria-label="پاک کردن فرم یادداشت">
+                            <i data-lucide="delete" class="w-5 h-5 ltr:mr-2 rtl:ml-2"></i>پاک کردن فرم
+                        </button>
+                    </div>
+                </div>
+                <p id="notes-disabled-message" class="text-sm text-center opacity-70 my-4">یادداشت‌های نمایش داده شده در زیر موقتی هستند و با رفرش صفحه پاک می‌شوند.</p>
+                <div id="notes-list" class="space-y-5">
+                     </div>
+            </div>
+        </section>
+        
+        <section id="whiteboard-section" class="section-content">
+            <div class="card p-6 sm:p-8 rounded-2xl">
+                <h2 id="whiteboard-title" class="text-3xl font-semibold mb-6 pb-3 border-b border-color flex items-center"><i data-lucide="palette" class="ltr:mr-3 rtl:ml-3 text-accent-bg"></i>🎨 تخته سفید دیجیتال</h2>
+                <div id="whiteboard-controls" class="flex flex-wrap items-center gap-x-5 gap-y-3 mb-5 p-4 rounded-xl bg-secondary border border-color shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <span id="wb-tool-label" class="text-sm font-medium mr-1.5">ابزار:</span>
+                        <button class="tool-option active p-2" data-tool="draw" title="قلم" aria-label="انتخاب قلم"><i data-lucide="pencil"></i></button>
+                        <button class="tool-option p-2" data-tool="erase" title="پاک‌کن" aria-label="انتخاب پاک‌کن"><i data-lucide="eraser"></i></button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="wb-color-label" class="text-sm font-medium mr-1.5">رنگ:</span>
+                        <button class="color-option active" style="background-color: black;" data-color="black" aria-label="انتخاب رنگ مشکی"></button>
+                        <button class="color-option" style="background-color: #ef4444;" data-color="#ef4444" aria-label="انتخاب رنگ قرمز"></button>
+                        <button class="color-option" style="background-color: #3b82f6;" data-color="#3b82f6" aria-label="انتخاب رنگ آبی"></button>
+                        <button class="color-option" style="background-color: #22c55e;" data-color="#22c55e" aria-label="انتخاب رنگ سبز"></button>
+                        <button class="color-option" style="background-color: #f59e0b;" data-color="#f59e0b" aria-label="انتخاب رنگ زرد"></button> 
+                        <button class="color-option" style="background-color: #a855f7;" data-color="#a855f7" aria-label="انتخاب رنگ بنفش"></button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="wb-size-label" class="text-sm font-medium mr-1.5">اندازه:</span>
+                        <button class="size-option" data-size="2" aria-label="اندازه کوچک"><div style="width: 4px; height: 4px;"></div></button>
+                        <button class="size-option active" data-size="5" aria-label="اندازه متوسط"><div style="width: 8px; height: 8px;"></div></button>
+                        <button class="size-option" data-size="10" aria-label="اندازه بزرگ"><div style="width: 12px; height: 12px;"></div></button>
+                        <button class="size-option" data-size="20" aria-label="اندازه خیلی بزرگ"><div style="width: 18px; height: 18px;"></div></button>
+                    </div>
+                    <button id="clear-whiteboard-button" class="secondary py-2 px-4 rounded-xl flex items-center text-sm ml-auto rtl:mr-auto rtl:ml-0" aria-label="پاک کردن کل تخته سفید">
+                        <i data-lucide="trash-2" class="w-4.5 h-4.5 ltr:mr-1.5 rtl:ml-1.5"></i><span id="wb-clear-btn-text">پاک کردن کل</span>
+                    </button>
+                </div>
+                <canvas id="whiteboard-canvas" class="border border-color rounded-xl w-full h-80 md:h-[550px] bg-white dark:bg-gray-800 shadow-inner"></canvas>
+            </div>
+        </section>
+
+        <section id="search-section" class="section-content">
+            <div class="card p-6 sm:p-8 rounded-2xl">
+                <h2 id="search-title" class="text-3xl font-semibold mb-6 pb-3 border-b border-color flex items-center">
+                    <i data-lucide="search-code" class="ltr:mr-3 rtl:ml-3 text-accent-bg"></i>🔍 جستجوی هوشمند در سایت
+                </h2>
+                <div class="search-input-container">
+                    <input type="text" id="smart-search-input" placeholder="کلمه یا عبارت مورد نظر را جستجو کنید..." class="w-full rounded-xl text-lg p-3 pr-10 rtl:pl-10 rtl:pr-3">
+                    <i data-lucide="search" class="search-icon w-5 h-5"></i>
+                </div>
+                <div id="smart-search-results" class="mt-5 space-y-3">
+                    </div>
+                <p id="smart-search-no-results" class="text-center mt-4 hidden">موردی یافت نشد.</p>
+            </div>
+        </section>
+
+        <section id="info-section" class="section-content">
+            <div class="card p-6 sm:p-8 rounded-2xl">
+                <h2 id="info-title" class="text-3xl font-semibold mb-6 pb-3 border-b border-color flex items-center"><i data-lucide="info" class="ltr:mr-3 rtl:ml-3 text-accent-bg"></i>👤 اطلاعات</h2>
+                 <div class="flex border-b border-color mb-6 overflow-x-auto">
+                    <button id="user-info-tab" onclick="showInfoTab('user')" class="info-tab-button whitespace-nowrap">اطلاعات کاربر</button>
+                    <button id="system-info-tab" onclick="showInfoTab('system')" class="info-tab-button whitespace-nowrap">اطلاعات سیستم</button>
+                    <button id="developer-info-tab" onclick="showInfoTab('developer')" class="info-tab-button whitespace-nowrap">اطلاعات سازنده</button>
+                    <button id="site-stats-tab" onclick="showInfoTab('site-stats')" class="info-tab-button whitespace-nowrap">آمار سایت</button>
+                </div>
+                <div id="user-info-content" class="info-tab-content">
+                    <h3 id="user-info-header" class="text-2xl font-semibold mb-4">اطلاعات کاربری شما</h3>
+                    <p id="user-id-info" class="break-all text-lg mb-2"></p> <p id="user-name-display" class="text-lg mb-2 hidden"></p> <p id="user-interest-display" class="text-lg mb-2 hidden"></p> <p id="login-time-info" class="text-base"></p> <p id="online-duration-info" class="text-base mt-1"></p> </div>
+                <div id="system-info-content" class="info-tab-content" style="display:none;">
+                    <h3 id="system-info-header" class="text-2xl font-semibold mb-4">اطلاعات سیستم شما</h3>
+                    <ul id="system-info-list" class="list-disc ltr:list-inside rtl:list-outside rtl:mr-6 space-y-2 text-base"></ul>
+                </div>
+                <div id="developer-info-content" class="info-tab-content" style="display:none;">
+                    <h3 id="dev-info-header" class="text-2xl font-semibold mb-4">درباره سازنده 💎</h3>
+                    <p id="dev-info-text" class="text-lg leading-relaxed">این اپلیکیشن توسط کسری شیر علی زاده و با الهام از قدرت هوش مصنوعی جمنای (Gemini) و با هدف ارائه ابزاری کاربردی و زیبا برای علاقه‌مندان به ریاضیات طراحی و پیاده‌سازی شده است. امیدواریم از کار با آن لذت ببرید!</p>
+                </div>
+                <div id="site-stats-content" class="info-tab-content" style="display:none;">
+                    <h3 id="site-stats-header" class="text-2xl font-semibold mb-4">آمار و اطلاعات سایت</h3>
+                    <ul class="list-disc ltr:list-inside rtl:list-outside rtl:mr-6 space-y-2 text-base">
+                        <li id="site-creation-date"></li>
+                        <li id="site-dev-time"></li>
+                        <li id="site-power-desc"></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="calendar-section" class="section-content">
+            <div class="card p-6 sm:p-8 rounded-2xl text-center">
+                <h2 id="calendar-title" class="text-3xl font-semibold mb-6 pb-3 border-b border-color flex items-center justify-center"><i data-lucide="calendar-days" class="ltr:mr-3 rtl:ml-3 text-accent-bg"></i>📅 تقویم امروز</h2>
+                <div id="gregorian-date-display" class="text-3xl font-semibold my-3"></div>
+                <div id="shamsi-date-display" class="text-2xl opacity-90 my-3 hidden"></div> <div id="current-time-display" class="text-xl opacity-80 my-3"></div>
+                <p id="calendar-placeholder-text" class="mt-5 text-base opacity-80">نمایش تاریخ میلادی به همراه روز هفته و ساعت.</p>
+            </div>
+        </section>
+
+        <section id="articles-section" class="section-content">
+            <div class="card p-6 sm:p-8 rounded-2xl">
+                <h2 id="articles-title" class="text-3xl font-semibold mb-6 pb-3 border-b border-color flex items-center"><i data-lucide="book-open-text" class="ltr:mr-3 rtl:ml-3 text-accent-bg"></i>📚 مقالات ریاضی</h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="article-card">
+                        <img src="https://placehold.co/600x400/a0aec0/ffffff?text=ریاضیات+در+طبیعت" alt="[تصویر مقاله ریاضیات در طبیعت]" class="rounded-lg mb-4 w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/e0e0e0/909090?text=Image+Not+Found'">
+                        <h3 id="article1-title" class="text-xl font-semibold mb-2">ریاضیات در طبیعت: دنباله فیبوناچی و نسبت طلایی</h3>
+                        <p id="article1-desc" class="text-sm opacity-80 mb-3">چگونه الگوهای ریاضی مانند دنباله فیبوناچی و نسبت طلایی در ساختار گل‌ها، صدف‌ها و حتی کهکشان‌ها ظاهر می‌شوند؟ سفری به دنیای شگفت‌انگیز ریاضیات پنهان در طبیعت.</p>
+                        <a href="#" onclick="showMessageModal('این مقاله نمونه است و لینک آن در حال حاضر غیرفعال می‌باشد.', 'مقاله نمونه'); return false;" class="read-more-link button-like secondary">بیشتر بخوانید <i data-lucide="arrow-left" class="inline-block w-4 h-4 rtl:hidden ltr:ml-1"></i><i data-lucide="arrow-right" class="inline-block w-4 h-4 ltr:hidden rtl:mr-1"></i></a>
+                    </div>
+                    <div class="article-card">
+                         <img src="https://placehold.co/600x400/7f9cf5/ffffff?text=پارادوکس‌های+ریاضی" alt="[تصویر مقاله پارادوکس‌های ریاضی]" class="rounded-lg mb-4 w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/e0e0e0/909090?text=Image+Not+Found'">
+                        <h3 id="article2-title" class="text-xl font-semibold mb-2">پارادوکس‌های معروف ریاضی: از زنون تا راسل</h3>
+                        <p id="article2-desc" class="text-sm opacity-80 mb-3">پارادوکس‌ها چگونه به چالش کشیدن مفروضات ما در ریاضیات کمک کرده و منجر به پیشرفت‌های بزرگی در این علم شده‌اند؟ مروری بر چند پارادوکس جذاب و تاریخچه آن‌ها.</p>
+                         <a href="#" onclick="showMessageModal('این مقاله نمونه است و لینک آن در حال حاضر غیرفعال می‌باشد.', 'مقاله نمونه'); return false;" class="read-more-link button-like secondary">بیشتر بخوانید <i data-lucide="arrow-left" class="inline-block w-4 h-4 rtl:hidden ltr:ml-1"></i><i data-lucide="arrow-right" class="inline-block w-4 h-4 ltr:hidden rtl:mr-1"></i></a>
+                    </div>
+                    <div class="article-card"> 
+                        <img src="https://placehold.co/600x400/63b3ed/ffffff?text=هوش+مصنوعی+و+ریاضیات" alt="[تصویر مقاله هوش مصنوعی و ریاضیات]" class="rounded-lg mb-4 w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/e0e0e0/909090?text=Image+Not+Found'">
+                        <h3 id="article3-title" class="text-xl font-semibold mb-2">هوش مصنوعی و آینده ریاضیات: همکاری یا رقابت؟</h3>
+                        <p id="article3-desc" class="text-sm opacity-80 mb-3">چگونه الگوریتم‌های هوش مصنوعی می‌توانند در حل مسائل پیچیده ریاضی، کشف قضایای جدید و حتی آموزش ریاضیات به ما کمک کنند؟ آیا AI جایگزین ریاضیدانان خواهد شد یا ابزاری قدرتمند در دستان آن‌ها؟</p>
+                        <a href="#" onclick="showMessageModal('این مقاله نمونه است و لینک آن در حال حاضر غیرفعال می‌باشد.', 'مقاله نمونه'); return false;" class="read-more-link button-like secondary">بیشتر بخوانید <i data-lucide="arrow-left" class="inline-block w-4 h-4 rtl:hidden ltr:ml-1"></i><i data-lucide="arrow-right" class="inline-block w-4 h-4 ltr:hidden rtl:mr-1"></i></a>
+                    </div>
+                    <div class="content-placeholder-card md:col-span-2 lg:col-span-1 flex flex-col items-center justify-center shimmer-bg">
+                        <i data-lucide="plus-circle" class="w-12 h-12 mb-3 opacity-50"></i>
+                        <p id="articles-coming-soon">مقالات بیشتر به زودی...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="blog-section" class="section-content">
+            <div class="card p-6 sm:p-8 rounded-2xl">
+                <h2 id="blog-title" class="text-3xl font-semibold mb-6 pb-3 border-b border-color flex items-center"><i data-lucide="layout-list" class="ltr:mr-3 rtl:ml-3 text-accent-bg"></i>📝 وبلاگ کسری ریاضی</h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="blog-post-card">
+                        <img src="img/1.jpg" alt="گل زرد در طبیعت با پس‌زمینه سبز، نمایانگر ارتباط ریاضیات با الگوهای طبیعی، تصویر آرام و الهام‌بخش" class="rounded-lg mb-4 w-full h-48 object-cover" onerror="this.src='images/placeholder-default.png'; this.onerror=null;">
+                        <h3 class="text-xl font-semibold mb-2">چگونه ریاضیات را جذاب‌تر یاد بگیریم؟</h3>
+                        <p class="text-sm opacity-80 mb-3 flex-grow">چند راهکار عملی برای اینکه یادگیری مفاهیم ریاضی برای دانش‌آموزان و دانشجویان به تجربه‌ای شیرین‌تر تبدیل شود.</p>
+                        <a href="#" onclick="showMessageModal('این لینک در حال حاضر غیرفعال است.', 'پست وبلاگ نمونه'); return false;" class="read-more-link button-like secondary">ادامه مطلب <i data-lucide="arrow-left" class="inline-block w-4 h-4 rtl:hidden ltr:ml-1"></i><i data-lucide="arrow-right" class="inline-block w-4 h-4 ltr:hidden rtl:mr-1"></i></a>
+                    </div>
+                    <div class="blog-post-card">
+                        <img src="https://placehold.co/600x338/fbd38d/ffffff?text=پست+وبلاگ+۲" alt="[تصویر پست وبلاگ ۲]" class="rounded-lg mb-4 w-full object-cover" onerror="this.src='https://placehold.co/600x338/e0e0e0/909090?text=Image+Not+Found'">
+                        <h3 class="text-xl font-semibold mb-2">معرفی ۵ کتاب برتر برای علاقه‌مندان به ریاضیات</h3>
+                        <p class="text-sm opacity-80 mb-3 flex-grow">اگر به دنیای شگفت‌انگیز ریاضیات علاقه‌مند هستید، این کتاب‌ها می‌توانند دیدگاه شما را گسترش دهند و شما را با مفاهیم عمیق‌تری آشنا کنند.</p>
+                        <a href="#" onclick="showMessageModal('این لینک در حال حاضر غیرفعال است.', 'پست وبلاگ نمونه'); return false;" class="read-more-link button-like secondary">ادامه مطلب <i data-lucide="arrow-left" class="inline-block w-4 h-4 rtl:hidden ltr:ml-1"></i><i data-lucide="arrow-right" class="inline-block w-4 h-4 ltr:hidden rtl:mr-1"></i></a>
+                    </div>
+                    <div class="content-placeholder-card flex flex-col items-center justify-center shimmer-bg">
+                        <i data-lucide="edit-3" class="w-12 h-12 mb-3 opacity-50"></i>
+                        <p>پست‌های جدید به زودی...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="videos-section" class="section-content">
+            <div class="card p-6 sm:p-8 rounded-2xl">
+                <h2 id="videos-title" class="text-3xl font-semibold mb-6 pb-3 border-b border-color flex items-center">
+                    <i data-lucide="film" class="ltr:mr-3 rtl:ml-3 text-red-600"></i>🎬 ویدیوهای آموزشی ریاضی در آپارات
+                </h2>
+                <div id="aparat-video-suggestions" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                    <a id="video-link-1" href="https://www.aparat.com/search?q=آموزش+حد+و+پیوستگی" target="_blank" rel="noopener noreferrer" class="video-suggestion-card group">
+                        <div class="video-icon-container"><i data-lucide="play-circle"></i></div>
+                        <h4 id="video-title-1" class="video-title">آموزش حد و پیوستگی</h4>
+                        <p id="video-desc-1" class="video-description">مفاهیم پایه حد و شرایط پیوستگی توابع.</p>
+                    </a>
+                    <a id="video-link-2" href="https://www.aparat.com/search?q=آموزش+مشتق+و+کاربردهای+آن" target="_blank" rel="noopener noreferrer" class="video-suggestion-card group">
+                        <div class="video-icon-container"><i data-lucide="play-circle"></i></div>
+                        <h4 id="video-title-2" class="video-title">مشتق و کاربردهای آن</h4>
+                        <p id="video-desc-2" class="video-description">آشنایی با مفهوم مشتق و استفاده از آن در مسائل بهینه‌سازی.</p>
+                    </a>
+                    <a id="video-link-3" href="https://www.aparat.com/search?q=آموزش+انتگرال+معین+و+نامعین" target="_blank" rel="noopener noreferrer" class="video-suggestion-card group">
+                        <div class="video-icon-container"><i data-lucide="play-circle"></i></div>
+                        <h4 id="video-title-3" class="video-title">انتگرال معین و نامعین</h4>
+                        <p id="video-desc-3" class="video-description">روش‌های محاسبه انتگرال و کاربرد در محاسبه مساحت.</p>
+                    </a>
+                     <a id="video-link-4" href="https://www.aparat.com/search?q=آموزش+ماتریس+و+دترمینان" target="_blank" rel="noopener noreferrer" class="video-suggestion-card group">
+                        <div class="video-icon-container"><i data-lucide="play-circle"></i></div>
+                        <h4 id="video-title-4" class="video-title">ماتریس و دترمینان</h4>
+                        <p id="video-desc-4" class="video-description">عملیات روی ماتریس‌ها و محاسبه دترمینان.</p>
+                    </a>
+                    <a id="video-link-5" href="https://www.aparat.com/search?q=آموزش+اعداد+مختلط" target="_blank" rel="noopener noreferrer" class="video-suggestion-card group">
+                        <div class="video-icon-container"><i data-lucide="play-circle"></i></div>
+                        <h4 id="video-title-5" class="video-title">آشنایی با اعداد مختلط</h4>
+                        <p id="video-desc-5" class="video-description">مقدمه‌ای بر اعداد مختلط و نمایش هندسی آن‌ها.</p>
+                    </a>
+                    <a id="video-link-6" href="https://www.aparat.com/search?q=آموزش+هندسه+تحلیلی+پایه" target="_blank" rel="noopener noreferrer" class="video-suggestion-card group">
+                        <div class="video-icon-container"><i data-lucide="play-circle"></i></div>
+                        <h4 id="video-title-6" class="video-title">هندسه تحلیلی پایه</h4>
+                        <p id="video-desc-6" class="video-description">معادله خط، دایره و مقاطع مخروطی.</p>
+                    </a>
+                    <a id="video-link-7" href="https://www.aparat.com/search?q=آموزش+آمار+و+احتمالات+مقدماتی" target="_blank" rel="noopener noreferrer" class="video-suggestion-card group">
+                        <div class="video-icon-container"><i data-lucide="play-circle"></i></div>
+                        <h4 id="video-title-7" class="video-title">آمار و احتمالات مقدماتی</h4>
+                        <p id="video-desc-7" class="video-description">مفاهیم اولیه آمار توصیفی و احتمال.</p>
+                    </a>
+                    <a id="video-link-8" href="https://www.aparat.com/search?q=آموزش+حل+معادلات+دیفرانسیل+ساده" target="_blank" rel="noopener noreferrer" class="video-suggestion-card group">
+                        <div class="video-icon-container"><i data-lucide="play-circle"></i></div>
+                        <h4 id="video-title-8" class="video-title">حل معادلات دیفرانسیل ساده</h4>
+                        <p id="video-desc-8" class="video-description">روش‌های حل معادلات دیفرانسیل مرتبه اول.</p>
+                    </a>
+                </div>
+                 <p id="videos-section-note" class="text-center mt-6 text-sm opacity-70">با کلیک بر روی هر کارت، به صفحه جستجوی آن آموزش در آپارات هدایت می‌شوید.</p>
+            </div>
+        </section>
+
+        <section id="tools-section" class="section-content">
+            <div class="card p-6 sm:p-8 rounded-2xl">
+                <h2 id="tools-title" class="text-3xl font-semibold mb-6 pb-3 border-b border-color flex items-center"><i data-lucide="cpu" class="ltr:mr-3 rtl:ml-3 text-accent-bg"></i>🛠️ ابزارک‌های کاربردی</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <a href="#" onclick="showMessageModal('این ابزارک در حال حاضر غیرفعال است.', 'ابزارک نمونه'); return false;" class="widget-button button-like primary text-center block py-4">ماشین حساب آنلاین</a>
+                    <a href="#" onclick="showMessageModal('این ابزارک در حال حاضر غیرفعال است.', 'ابزارک نمونه'); return false;" class="widget-button button-like primary text-center block py-4">تبدیل واحدها</a>
+                    <a href="https://www.time.ir" target="_blank" rel="noopener noreferrer" class="widget-button button-like secondary text-center block py-4">ساعت جهانی (time.ir)</a>
+                    <div class="content-placeholder-card flex items-center justify-center p-4 shimmer-bg">
+                        <i data-lucide="settings-2" class="w-8 h-8 opacity-50"></i>
+                    </div>
+                </div>
+                <p id="tools-section-note" class="text-center mt-6 text-sm opacity-70">ابزارک‌های بیشتر به زودی اضافه خواهند شد.</p>
+            </div>
+        </section>
+
+        <section id="software-section" class="section-content">
+            <div class="card p-6 sm:p-8 rounded-2xl">
+                <h2 id="software-title" class="text-3xl font-semibold mb-6 pb-3 border-b border-color flex items-center"><i data-lucide="app-window" class="ltr:mr-3 rtl:ml-3 text-accent-bg"></i>💻 نرم‌افزارهای مفید</h2>
+                <ul class="list-none space-y-4">
+                    <li class="software-item flex items-center">
+                        <span class="software-logo-placeholder">G</span>
+                        <a href="https://www.geogebra.org" target="_blank" rel="noopener noreferrer" class="read-more-link">نرم‌افزار GeoGebra (هندسه و جبر)</a>
+                    </li>
+                    <li class="software-item flex items-center">
+                        <span class="software-logo-placeholder">W</span>
+                        <a href="https://www.wolfram.com/mathematica/" target="_blank" rel="noopener noreferrer" class="read-more-link">نرم‌افزار Wolfram Mathematica (محاسبات پیشرفته)</a>
+                    </li>
+                    <li class="software-item flex items-center">
+                        <span class="software-logo-placeholder">M</span>
+                        <a href="https://www.mathworks.com/products/matlab.html" target="_blank" rel="noopener noreferrer" class="read-more-link">نرم‌افزار MATLAB (مهندسی و محاسبات عددی)</a>
+                    </li>
+                     <li class="software-item flex items-center">
+                        <span class="software-logo-placeholder">P</span>
+                        <a href="https://www.python.org/downloads/" target="_blank" rel="noopener noreferrer" class="read-more-link">زبان برنامه‌نویسی Python (با کتابخانه‌های NumPy, SciPy)</a>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="products-section" class="section-content">
+            <div class="card p-6 sm:p-8 rounded-2xl">
+                <h2 id="products-title" class="text-3xl font-semibold mb-6 pb-3 border-b border-color flex items-center"><i data-lucide="shopping-cart" class="ltr:mr-3 rtl:ml-3 text-accent-bg"></i>🛍️ محصولات و خدمات ما</h2>
+                <div class="content-placeholder-card shimmer-bg">
+                    <i data-lucide="package-search" class="w-16 h-16 mb-4 opacity-50"></i>
+                    <p id="products-coming-soon" class="text-lg">به زودی محصولات و خدمات ویژه‌ای در این بخش معرفی خواهد شد! 🎁</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="ads-section" class="section-content">
+            <div class="card p-6 sm:p-8 rounded-2xl">
+                <h2 id="ads-title" class="text-3xl font-semibold mb-6 pb-3 border-b border-color flex items-center"><i data-lucide="megaphone" class="ltr:mr-3 rtl:ml-3 text-accent-bg"></i>📢 بخش ویژه تبلیغات</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="ad-banner"><p>فضای تبلیغاتی شما (۳۰۰x۲۵۰) - بهترین فرصت برای معرفی کسب و کارتان!</p></div>
+                    <div class="ad-banner"><p>بنر تبلیغاتی ویژه (۷۲۸x۹۰) - در معرض دید هزاران علاقه‌مند به ریاضیات!</p></div>
+                </div>
+                <p id="ads-contact-note" class="text-center mt-6 text-sm opacity-70">برای اطلاع از شرایط و رزرو فضای تبلیغاتی، با ما تماس بگیرید.</p>
+            </div>
+        </section>
+
+        <section id="contact-section" class="section-content">
+            <div class="card p-6 sm:p-8 rounded-2xl">
+                <h2 id="contact-title" class="text-3xl font-semibold mb-6 pb-3 border-b border-color flex items-center"><i data-lucide="mail-question" class="ltr:mr-3 rtl:ml-3 text-accent-bg"></i>📞 ارتباط با کسری ریاضی</h2>
+                <div class="grid md:grid-cols-2 gap-x-12 gap-y-8"> <div class="space-y-6"> <div>
+                            <h3 id="contact-direct-title" class="text-xl font-semibold mb-3 flex items-center"><i data-lucide="message-circle" class="ltr:mr-2 rtl:ml-2 text-accent-bg"></i>راه‌های ارتباط مستقیم</h3>
+                            <p class="mb-3 flex items-center"><i data-lucide="phone-call" class="w-5 h-5 ltr:mr-2.5 rtl:ml-2.5 text-green-500"></i>موبایل (کسری شیرعلی): <a href="tel:0914532706" class="hover:underline font-medium">0914532706</a></p>
+                            <p class="mb-3 flex items-center"><i data-lucide="send" class="w-5 h-5 ltr:mr-2.5 rtl:ml-2.5 text-blue-500"></i>تلگرام: <a href="https://t.me/KasraShirali" target="_blank" class="hover:underline font-medium">@KasraShirali</a></p>
+                            <p class="flex items-center"><i data-lucide="mail-open" class="w-5 h-5 ltr:mr-2.5 rtl:ml-2.5 text-purple-500"></i>ایمیل: <a href="mailto:kasra.shirali.dev@gmail.com" class="hover:underline font-medium">kasra.shirali.dev@gmail.com</a></p>
+                        </div>
+                        <div>
+                            <h3 id="contact-social-title" class="text-xl font-semibold mb-3 mt-8 flex items-center"><i data-lucide="share-2" class="ltr:mr-2 rtl:ml-2 text-accent-bg"></i>ما را دنبال کنید</h3>
+                            <div class="flex space-x-4 rtl:space-x-reverse">
+                                <a href="https://github.com/KasraShirAli" target="_blank" class="text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors" title="گیت‌هاب"><i data-lucide="github" class="w-7 h-7"></i></a>
+                                <a href="#" onclick="showMessageModal('لینک شبکه اجتماعی نمونه (غیرفعال)', 'شبکه‌های اجتماعی'); return false;" class="text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title="لینکدین (نمونه)"><i data-lucide="linkedin" class="w-7 h-7"></i></a>
+                                <a href="#" onclick="showMessageModal('لینک شبکه اجتماعی نمونه (غیرفعال)', 'شبکه‌های اجتماعی'); return false;" class="text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors" title="اینستاگرام (نمونه)"><i data-lucide="instagram" class="w-7 h-7"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 id="contact-form-title" class="text-xl font-semibold mb-3 flex items-center"><i data-lucide="edit" class="ltr:mr-2 rtl:ml-2 text-accent-bg"></i>ارسال پیام (نمایشی)</h3>
+                        <p class="text-sm opacity-80 mb-4" id="contact-form-subtitle">سوالات، پیشنهادات و انتقادات خود را از طریق فرم زیر با ما در میان بگذارید. (این فرم نمایشی است)</p>
+                        <form id="contact-form" class="space-y-5">
+                            <div>
+                                <label id="contact-name-label-el" for="contact-name" class="block text-sm font-medium mb-1.5">نام شما:</label>
+                                <input type="text" id="contact-name" name="name" class="w-full rounded-lg" placeholder="مثال: کسری ریاضی دوست">
+                            </div>
+                            <div>
+                                <label id="contact-email-label-el" for="contact-email" class="block text-sm font-medium mb-1.5">ایمیل شما:</label>
+                                <input type="email" id="contact-email" name="email" class="w-full rounded-lg" placeholder="kasra@example.com">
+                            </div>
+                            <div>
+                                <label id="contact-message-label-el" for="contact-message" class="block text-sm font-medium mb-1.5">پیام شما:</label>
+                                <textarea id="contact-message" name="message" rows="4" class="w-full rounded-lg" placeholder="سوال یا پیشنهاد خود را بنویسید..."></textarea>
+                            </div>
+                            <button type="submit" id="submit-contact-form" class="primary py-3 px-6 rounded-lg text-lg flex items-center"><i data-lucide="send" class="ltr:mr-2 rtl:ml-2"></i>ارسال پیام</button>
+                        </form>
+                    </div>
+                </div>
+                 <p id="contact-form-note-display" class="text-center text-xs opacity-70 mt-8"></p> </div>
+        </section>
+
+        <section id="about-section" class="section-content">
+            <div class="card p-6 sm:p-8 rounded-2xl">
+                <h2 id="about-title" class="text-3xl font-semibold mb-8 pb-3 border-b border-color flex items-center"><i data-lucide="gem" class="ltr:mr-3 rtl:ml-3 text-accent-bg"></i>ℹ️ درباره پروژه "کسری ریاضی"</h2>
+                <div class="prose prose-lg max-w-none leading-relaxed space-y-8"> <div class="about-subsection">
+                        <h3 id="about-intro-title">معرفی پروژه</h3>
+                        <p id="about-intro-p1">
+                            "کسری ریاضی" یک پلتفرم تحت وب پویا و تعاملی است که با عشق و علاقه به دنیای شگفت‌انگیز ریاضیات و با هدف ارائه ابزارهای کاربردی و محتوای آموزشی جذاب برای تمامی علاقه‌مندان، از دانش‌آموزان کنجکاو گرفته تا دانشجویان پرتلاش و اساتید گرانقدر، طراحی و توسعه یافته است. ما در "کسری ریاضی" عمیقاً به قدرت دانش، اهمیت دسترسی آسان به منابع آموزشی کارآمد و مدرن، و لذت کشف مفاهیم ریاضی باور داریم.
+                        </p>
+                        <p id="about-intro-p2">
+                            این پروژه با بهره‌گیری از جدیدترین فناوری‌های وب شامل HTML5، CSS3 (با قدرت فریم‌ورک Tailwind CSS برای طراحی واکنش‌گرا، زیبا و کاربرپسند)، و جاوااسکریپت مدرن (ES6+) به همراه کتابخانه‌های مفید، شکل گرفته است. همچنین، از توانایی‌های هوش مصنوعی پیشرفته گوگل (Gemini API) برای ارائه قابلیت‌های نوینی مانند توضیح گام‌به‌گام مراحل ساده‌سازی عبارات جبری و حل تشریحی معادلات بهره گرفته شده است. هدف اصلی ما، ایجاد تجربه‌ای نوین، روان، کاربرپسند و در نهایت، لذت‌بخش از یادگیری و کار با مفاهیم ریاضی برای شما کاربران گرامی است.
+                        </p>
+                    </div>
+                    <div class="about-subsection">
+                        <h3 id="about-mission-vision-title">ماموریت و چشم‌انداز ما</h3>
+                        <p id="about-mission-p1">
+                            ماموریت اصلی "کسری ریاضی"، **ساده‌سازی دسترسی به آموزش ریاضیات با کیفیت بالا** و **ترویج فرهنگ تفکر انتقادی، حل مسئله و خلاقیت ریاضی** در میان کاربران است. ما بر آنیم تا ریاضیات را از یک موضوع صرفاً درسی و گاهی اوقات ترسناک، به یک ماجراجویی فکری هیجان‌انگیز و قابل دسترس برای همگان تبدیل کنیم.
+                        </p>
+                        <p id="about-vision-p1">
+                            چشم‌انداز ما، تبدیل شدن به یک مرجع آنلاین معتبر و محبوب برای یادگیری، تمرین و کاوش در حوزه‌های مختلف ریاضیات است؛ پلتفرمی که نه تنها ابزارهای محاسباتی ارائه می‌دهد، بلکه الهام‌بخش کنجکاوی و اشتیاق به یادگیری عمیق‌تر مفاهیم ریاضی باشد. ما در تلاشیم تا با ارائه ابزارهای تعاملی نوآورانه، محتوای آموزشی غنی و به‌روز، و ایجاد یک جامعه کاربری پویا و پشتیبان، به کاربران خود کمک کنیم تا پتانسیل کامل خود را در دنیای ریاضیات شکوفا سازند.
+                        </p>
+                    </div>
+                    <div class="about-subsection">
+                        <h3 id="about-math-universe-title">ریاضیات: زبان شگفت‌انگیز کائنات</h3>
+                        <p id="about-math-p1">
+                            ریاضیات، بسیار فراتر از مجموعه‌ای خشک از فرمول‌ها، اعداد و نمادهاست؛ این علم، در حقیقت، زبانی قدرتمند و جهانی است که قوانین بنیادین حاکم بر جهان هستی و پدیده‌های اطراف ما را توصیف و تفسیر می‌کند. از الگوهای دقیق و منظم در حرکت سیارات در منظومه شمسی و ساختار بلورها گرفته تا پیچیدگی‌های ظریف در الگوهای رشد گیاهان، ساختار DNA، امواج صوتی، بازارهای مالی و حتی هنر و موسیقی، همگی ردپایی عمیق و شگفت‌انگیز از اصول و مفاهیم ریاضی را در خود نهفته دارند.
+                        </p>
+                         <p id="about-math-p2">
+                            یادگیری و درک ریاضیات نه تنها به تقویت مهارت‌های حیاتی مانند حل مسئله، تفکر منطقی، استدلال و تحلیل انتقادی کمک شایانی می‌کند، بلکه دیدگاه ما را نسبت به دنیای اطرافمان عمیق‌تر، دقیق‌تر و شگفت‌انگیزتر می‌سازد. "کسری ریاضی" با افتخار تلاش می‌کند تا این شگفتی، زیبایی و قدرت نهفته در ریاضیات را با شما به اشتراک بگذارد و مسیر یادگیری را برایتان هموارتر و جذاب‌تر نماید.
+                        </p>
+                    </div>
+                    <div class="about-subsection">
+                        <h3 id="about-development-future-title">توسعه مداوم و نگاه به آینده</h3>
+                        <p id="site-creation-info">
+                            پروژه "کسری ریاضی" یک موجود زنده و پویاست که به طور مداوم در حال رشد، توسعه و بهبود می‌باشد. تیم ما همواره در تلاش است تا با افزودن ویژگی‌های جدید، بهبود ابزارهای موجود، غنی‌سازی محتوای آموزشی و پاسخگویی به نیازها و بازخوردهای شما کاربران گرامی، این پلتفرم را به بهترین شکل ممکن ارتقا دهد. منتظر امکانات و شگفتی‌های جدید و هیجان‌انگیز در آینده نزدیک باشید! نظرات و پیشنهادات شما، چراغ راه ما در این مسیر خواهد بود.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer id="main-footer" class="text-center p-6 mt-12 text-base">
+        <div class="footer-content container mx-auto">
+            <div class="footer-links">
+                <a href="https://github.com/KasraShirAli" target="_blank" rel="noopener noreferrer" title="پروفایل گیت‌هاب کسری شیرعلی"><i data-lucide="github"></i></a>
+                <a href="mailto:kasra.shirali.dev@gmail.com" title="ارسال ایمیل"><i data-lucide="mail"></i></a>
+                <a href="#" onclick="navigateTo('about'); return false;" title="درباره ما"><i data-lucide="info"></i></a>
+            </div>
+            <p id="footer-text" class="mb-1">&copy; <span id="current-year"></span> کسری ریاضی. تمامی حقوق محفوظ است. 💎</p>
+            <p id="copyright-text" class="text-xs opacity-70">طراحی و توسعه با افتخار توسط کسری شیر علی زاده.</p>
+        </div>
+        <button id="show-errors-button" onclick="openErrorDisplayModal()" class="hidden" aria-label="نمایش خطاهای بارگذاری">
+            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            <span class="error-indicator"></span> </button>
+    </footer>
+
+    <div id="help-modal-overlay" class="modal-overlay fixed inset-0 flex items-center justify-center p-4">
+        <div id="help-modal-content" class="modal-content p-7 rounded-2xl w-full max-w-lg">
+            <div class="flex justify-between items-center mb-5">
+                <h2 id="help-modal-title" class="text-2xl font-semibold flex items-center"><i data-lucide="book-marked" class="ltr:mr-2 rtl:ml-2"></i>راهنمای جامع کسری ریاضی</h2>
+                <button onclick="closeHelpModal()" class="p-1.5 rounded-full hover:opacity-70" aria-label="بستن راهنما"><i data-lucide="x-circle" class="w-7 h-7"></i></button>
+            </div>
+            <div id="help-modal-body" class="prose prose-lg max-w-none leading-relaxed space-y-4 text-sm md:text-base"> <p id="help-intro">به «کسری ریاضی» خوش آمدید! 🥳 این راهنما به شما در استفاده از تمامی امکانات سایت کمک می‌کند:</p>
+                
+                <div>
+                    <h4 class="font-semibold mt-3 text-lg" id="help-navigation-title"><i data-lucide="navigation" class="inline-block w-5 h-5 ltr:mr-1 rtl:ml-1"></i>ناوبری در سایت:</h4>
+                    <p id="help-navigation-text">شما می‌توانید از منوی اصلی در بالای صفحه (یا منوی کشویی در موبایل) برای دسترسی به بخش‌های مختلف استفاده کنید. همچنین، یک منوی دسترسی سریع در سمت راست صفحه (در دسکتاپ) برای پرش به ابزارهای اصلی تعبیه شده است.</p>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mt-3 text-lg" id="help-simplify-title"><i data-lucide="function-square" class="inline-block w-5 h-5 ltr:mr-1 rtl:ml-1"></i>📉 ساده‌سازی عبارات:</h4>
+                    <p id="help-simplify-text">در این بخش، عبارت جبری خود را در کادر مربوطه وارد کرده و دکمه "ساده کن" را بزنید. نتیجه ساده‌شده به سرعت نمایش داده می‌شود. برای درک بهتر فرآیند ساده‌سازی، می‌توانید از دکمه "توضیح مراحل ✨" استفاده کنید که با کمک هوش مصنوعی، مراحل را به صورت گام به گام شرح می‌دهد.</p>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mt-3 text-lg" id="help-solve-title"><i data-lucide="calculator" class="inline-block w-5 h-5 ltr:mr-1 rtl:ml-1"></i>🧮 حل معادلات:</h4>
+                    <p id="help-solve-text">معادله مورد نظر خود را در کادر وارد کنید. برای دریافت راه‌حل‌های تشریحی و گام‌به‌گام، از دکمه "حل با هوش مصنوعی ✨" استفاده نمایید. قابلیت حل مستقیم با کتابخانه داخلی (دکمه "حل کن (به زودی)") در به‌روزرسانی‌های آینده به سایت اضافه خواهد شد.</p>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mt-3 text-lg" id="help-notes-title"><i data-lucide="notebook-tabs" class="inline-block w-5 h-5 ltr:mr-1 rtl:ml-1"></i>🗒️ یادداشت و چک‌لیست (نمایشی):</h4>
+                    <p id="help-notes-text">این بخش به شما امکان ایجاد یادداشت‌های موقت را می‌دهد. عنوان، محتوای اصلی و آیتم‌های چک‌لیست (با قابلیت تیک زدن) را وارد کنید. با کلیک روی "افزودن یادداشت (نمایشی)"، یادداشت شما در پایین فرم نمایش داده می‌شود. می‌توانید یادداشت‌های نمایش داده شده را به صورت نمایشی "ویرایش" (اطلاعات به فرم بازمی‌گردد) یا "حذف" کنید. توجه: این یادداشت‌ها با رفرش کردن صفحه پاک خواهند شد.</p>
+                </div>
+
+                <div>
+                     <h4 class="font-semibold mt-3 text-lg" id="help-whiteboard-title"><i data-lucide="palette" class="inline-block w-5 h-5 ltr:mr-1 rtl:ml-1"></i>🎨 تخته سفید دیجیتال:</h4>
+                    <p id="help-whiteboard-text">با انتخاب ابزار (قلم برای نوشتن یا پاک‌کن)، رنگ دلخواه و اندازه مناسب برای قلم/پاک‌کن، ایده‌ها، فرمول‌ها و نمودارهای خود را روی بوم دیجیتال پیاده کنید. با استفاده از دکمه "پاک کردن کل"، می‌توانید تمام محتوای تخته را پاک کرده و از نو شروع کنید.</p>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mt-3 text-lg" id="help-settings-title"><i data-lucide="settings-2" class="inline-block w-5 h-5 ltr:mr-1 rtl:ml-1"></i>⚙️ تنظیمات شخصی‌سازی:</h4>
+                    <p id="help-settings-text">از منوی تنظیمات (آیکن چرخ‌دنده در بالای صفحه) برای شخصی‌سازی ظاهر سایت استفاده کنید. شما می‌توانید تم کلی سایت (کلاسیک، فضایی، مدرن، نئونی، هکری)، فونت فارسی و فونت انگلیسی مورد علاقه خود و همچنین زبان برنامه (فارسی/انگلیسی) را تغییر دهید. این تنظیمات در مرورگر شما ذخیره می‌شوند تا در بازدیدهای بعدی نیز اعمال گردند.</p>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mt-3 text-lg" id="help-search-title"><i data-lucide="search" class="inline-block w-5 h-5 ltr:mr-1 rtl:ml-1"></i>🔍 جستجوی هوشمند:</h4>
+                    <p id="help-search-text">در بخش جستجو (قابل دسترس از منوی اصلی)، عبارت یا کلمه کلیدی مورد نظر خود را تایپ کنید. سیستم به طور هوشمند در محتوای متنی بخش‌های مختلف سایت (مانند عناوین، توضیحات مقالات، و ...) جستجو کرده و نتایج مرتبط را به همراه یک قطعه کوتاه از متن برای شما نمایش می‌دهد. با کلیک روی هر نتیجه، به بخش مربوطه هدایت خواهید شد.</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mt-3 text-lg" id="help-info-title"><i data-lucide="user-circle-2" class="inline-block w-5 h-5 ltr:mr-1 rtl:ml-1"></i>👤 بخش اطلاعات:</h4>
+                    <p id="help-info-text">در این بخش می‌توانید اطلاعات کاربری (نمایشی)، اطلاعات سیستم خود، اطلاعاتی درباره سازنده سایت و آمار کلی سایت (نمایشی) را مشاهده کنید.</p>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mt-3 text-lg" id="help-errors-title"><i data-lucide="alert-triangle" class="inline-block w-5 h-5 ltr:mr-1 rtl:ml-1"></i>🐞 مشاهده خطاها:</h4>
+                    <p id="help-errors-text">اگر در هنگام بارگذاری اولیه برنامه یا استفاده از قابلیت‌هایی که به کتابخانه‌های خارجی یا سرویس‌های آنلاین (مانند Gemini API) وابسته‌اند مشکلی پیش بیاید، یک دکمه کوچک با آیکون هشدار در پایین-چپ صفحه ظاهر می‌شود. با کلیک روی این دکمه، می‌توانید لیست خطاهای رخ داده را مشاهده کنید. این دکمه در صورت بروز خطای جدید، برجسته‌تر خواهد شد.</p>
+                </div>
+                <p id="help-enjoy" class="mt-6 text-sm opacity-80">امیدواریم از کار با امکانات متنوع "کسری ریاضی" لذت ببرید و این ابزار برای شما مفید واقع شود! ✨</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="confirm-delete-modal-overlay" class="modal-overlay fixed inset-0 flex items-center justify-center p-4">
+        <div id="confirm-delete-modal-content" class="modal-content p-7 rounded-2xl w-full max-w-md">
+            <h3 id="confirm-delete-title" class="text-xl font-semibold mb-5 flex items-center"><i data-lucide="alert-triangle" class="ltr:mr-2 rtl:ml-2 text-red-500"></i>تایید حذف</h3>
+            <p id="confirm-delete-text" class="mb-6 text-base">آیا از حذف این یادداشت نمایشی مطمئن هستید؟</p>
+            <div class="flex ltr:justify-end rtl:justify-start space-x-3 rtl:space-x-reverse">
+                <button id="cancel-delete-button" onclick="closeConfirmDeleteModal()" class="secondary py-2.5 px-5 rounded-lg">انصراف</button>
+                <button id="confirm-delete-button" onclick="executeDeleteNoteDisplayOnly()" class="bg-red-600 text-white py-2.5 px-5 rounded-lg hover:bg-red-700 flex items-center"><i data-lucide="trash" class="ltr:mr-2 rtl:ml-2"></i>حذف</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ai-response-modal-overlay" class="modal-overlay fixed inset-0 flex items-center justify-center p-4">
+        <div id="ai-response-modal-content" class="modal-content p-7 rounded-2xl w-full max-w-2xl">
+            <div class="flex justify-between items-center mb-5">
+                <h2 id="ai-response-modal-title" class="text-2xl font-semibold flex items-center"><i data-lucide="brain" class="ltr:mr-2 rtl:ml-2"></i>پاسخ هوش مصنوعی ✨</h2>
+                <button onclick="closeAIResponseModal()" class="p-1.5 rounded-full hover:opacity-70" aria-label="بستن مودال پاسخ هوش مصنوعی"><i data-lucide="x-circle" class="w-7 h-7"></i></button>
+            </div>
+            <div id="ai-response-loader" class="loader hidden"></div> <div id="ai-response-text-container">
+                <pre id="ai-response-text" class="text-base leading-relaxed"></pre> </div>
+        </div>
+    </div>
+
+    <div id="message-modal-overlay" class="modal-overlay fixed inset-0 flex items-center justify-center p-4">
+        <div id="message-modal-content" class="modal-content p-7 rounded-2xl w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="message-modal-title" class="text-xl font-semibold">پیام سیستم</h3>
+                <button onclick="closeMessageModal()" class="p-1.5 rounded-full hover:opacity-70" aria-label="بستن پیام"><i data-lucide="x-circle" class="w-6 h-6"></i></button>
+            </div>
+            <p id="message-modal-text" class="mb-6 text-base">متن پیام در اینجا قرار می‌گیرد.</p>
+            <div class="flex ltr:justify-end rtl:justify-start">
+                <button id="message-modal-ok-button" onclick="closeMessageModal()" class="primary py-2.5 px-6 rounded-lg">باشه</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="error-display-modal-overlay" class="modal-overlay fixed inset-0 flex items-center justify-center p-4">
+        <div id="error-display-modal-content" class="modal-content p-7 rounded-2xl w-full max-w-lg">
+            <div class="flex justify-between items-center mb-5">
+                <h2 id="error-display-modal-title" class="text-2xl font-semibold flex items-center"><i data-lucide="alert-octagon" class="ltr:mr-2 rtl:ml-2 text-red-500"></i>خطاهای رخ داده</h2>
+                <button onclick="closeErrorDisplayModal()" class="p-1.5 rounded-full hover:opacity-70" aria-label="بستن مودال خطاها"><i data-lucide="x-circle" class="w-7 h-7"></i></button>
+            </div>
+            <ul id="error-display-list" class="list-disc ltr:list-inside rtl:list-outside rtl:mr-6 space-y-2 text-base max-h-60 overflow-y-auto">
+                </ul>
+            <p id="no-errors-message" class="text-center hidden">در حال حاضر خطای بارگذاری گزارش نشده است.</p>
+        </div>
+    </div>
+    
+    <button id="back-to-top" onclick="scrollToTop()"
+            class="fixed bottom-6 ltr:right-6 rtl:left-6 z-[500] p-3 rounded-full shadow-lg primary opacity-0 transition-all duration-300 hover:opacity-100 focus:opacity-100 pointer-events-none"
+            aria-label="بازگشت به بالا">
+        <i data-lucide="arrow-up" class="w-6 h-6"></i>
+    </button>
+
+    <!-- 
+        اسکریپت اصلی JavaScript در اینجا قرار می‌گیرد.
+        به دلیل درخواست شما برای ارائه HTML ابتدا، این بخش خالی است.
+        در مرحله بعد، کد JavaScript برای فعال‌سازی تمام قابلیت‌ها اضافه خواهد شد.
+    -->
+
+
+    <script type="module" src="script.js"></script> 
+    <script type="text/javascript">
+         !function(){var i="HsfgXw",a=window,d=document;function g(){var g=d.createElement("script"),s="https://www.goftino.com/widget/"+i,l=localStorage.getItem("goftino_"+i);g.async=!0,g.src=l?s+"?o="+l:s;d.getElementsByTagName("head")[0].appendChild(g);}"complete"===d.readyState?g():a.attachEvent?a.attachEvent("onload",g):a.addEventListener("load",g,!1);}();
+    </script>
+    
+</body>
+</html>
