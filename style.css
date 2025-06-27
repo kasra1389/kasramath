@@ -77,6 +77,7 @@ main {
 /* تم کلاسیک (مقادیر آن در :root به عنوان پیش‌فرض تعریف شده‌اند) */
 .theme-classic { /* این کلاس برای اعمال مقادیر پیش‌فرض تم کلاسیک به body استفاده می‌شود */ }
 
+
 /* تم فضایی */
 .theme-space {
     --bg-primary: #0b1120; --text-primary: #cad3f5; --bg-secondary: #161e31; --text-secondary: #a0aec0;
@@ -772,5 +773,3 @@ html[dir="rtl"] .article-card .read-more-link, html[dir="rtl"] .blog-post-card .
     0% { transform: translateY(50px) scale(0.9); opacity: 0; }
     100% { transform: translateY(0) scale(1); opacity: 1; }
 }
-
-
